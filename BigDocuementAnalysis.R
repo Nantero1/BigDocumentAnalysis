@@ -1,57 +1,39 @@
-PhD Thesis Analysis
-================
-Benjamin Linnik
-
-Just for fun, text analysis of my thesis. Practice on (small) big data analysis.
-Can be quickly adapted to analyse any other kind of documents. Download the code from the repo and adjust the path variables. Maybe some filter adjustment is necessary for your use case.
-
-Downlod the [RMD document](BigDocuementAnalysis.Rmd) or the [pure R code](BigDocuementAnalysis.R). Open and install packages in RStudio. Adjust, run.
-
-``` r
+#' ---
+#' title: "PhD Thesis Analysis"
+#' author: "Benjamin Linnik"
+#' output:
+#'   github_document:
+#'     toc: yes
+#'     toc_depth: 2
+#'   html_document:
+#'     theme: united
+#'     toc: yes
+#'   pdf_document:
+#'     highlight: zenburn
+#'     toc: yes
+#' ---
+#' 
+#' Just for fun, text analysis of my thesis. Practice on (small) big data analysis.
+#' Can be quickly adapted to analyse any other kind of documents. Download the code from the repo and adjust the path variables. Maybe some filter adjustment is necessary for your use case.
+#' 
+#' 
+## ------------------------------------------------------------------------
 # #######################
 # ###### LIBRARIES ######
 # #######################
 library(tm) # text processing
-```
-
-    ## Warning: package 'tm' was built under R version 3.4.4
-
-    ## Loading required package: NLP
-
-``` r
 library(RWeka) # machine learning lib
-```
-
-    ## Warning: package 'RWeka' was built under R version 3.4.4
-
-``` r
 library(ggplot2) # plotting
-```
-
-    ## Warning: package 'ggplot2' was built under R version 3.4.4
-
-    ## 
-    ## Attaching package: 'ggplot2'
-
-    ## The following object is masked from 'package:NLP':
-    ## 
-    ##     annotate
-
-``` r
 library(wordcloud)
-```
 
-    ## Warning: package 'wordcloud' was built under R version 3.4.4
 
-    ## Loading required package: RColorBrewer
 
-``` r
 # #############################
 # ##### OUTPUT FILE NAMES #####
 # #############################
 
 # Document source, here all my *.tex files are stored (only the *.tex files)
-inputDir <- paste0("F:/Eigene Dateien/Promotion/Linnik-PhD-final/chapter")
+inputDir <- paste0("F:/Eigene Dateien/Downloads/Dropbox/Promotion/Linnik-PhD-final/chapter")
 
 wd     <- paste0(getwd()) # working dir
 word_predictor   <- paste0(wd, "/processed/pred/")
@@ -59,26 +41,9 @@ dir_en_processed <- paste0(wd, "/processed/cleanTxt/")
 dir_en_freq      <- paste0(wd, "/processed/freq/")
 
 dir.create (word_predictor, recursive = TRUE)
-```
-
-    ## Warning in dir.create(word_predictor, recursive = TRUE): 'F:\Eigene Dateien
-    ## \Documents\knitr example\processed\pred' existiert bereits
-
-``` r
 dir.create (dir_en_processed, recursive = TRUE)
-```
-
-    ## Warning in dir.create(dir_en_processed, recursive = TRUE): 'F:\Eigene
-    ## Dateien\Documents\knitr example\processed\cleanTxt' existiert bereits
-
-``` r
 dir.create (dir_en_freq, recursive = TRUE)
-```
 
-    ## Warning in dir.create(dir_en_freq, recursive = TRUE): 'F:\Eigene Dateien
-    ## \Documents\knitr example\processed\freq' existiert bereits
-
-``` r
 BIGRAM_FNAME   <- paste0(word_predictor, "bigram.txt")
 TRIGRAM_FNAME  <- paste0(word_predictor, "trigram.txt")
 QUADGRAM_FNAME <- paste0(word_predictor, "quadgram.txt")
@@ -92,32 +57,11 @@ TERM_FREQ_ORDERED_VECTOR_FNAME <- paste0(dir_en_freq, "term_freq_ord_vector.txt"
 #specifies the exact folder where my LaTeX file(s) is for analysis with tm.
 docs  <- Corpus(DirSource(directory = inputDir, encoding = "UTF-8"), readerControl = list(language = "en", reader = readPlain))
 summary(docs)  #check what went in
-```
 
-    ##                        Length Class             Mode
-    ## _00_Acronyms.tex       2      PlainTextDocument list
-    ## _04_MAPS.tex           2      PlainTextDocument list
-    ## _06_Requirements.tex   2      PlainTextDocument list
-    ## _06_Results.tex        2      PlainTextDocument list
-    ## 00_Abstract.tex        2      PlainTextDocument list
-    ## 00_Acronyms.tex        2      PlainTextDocument list
-    ## 00_Erklaerung.tex      2      PlainTextDocument list
-    ## 00_glossary.tex        2      PlainTextDocument list
-    ## 01_Motivation.tex      2      PlainTextDocument list
-    ## 02_CBM.tex             2      PlainTextDocument list
-    ## 03_Semiconductors.tex  2      PlainTextDocument list
-    ## 04__bigtables.tex      2      PlainTextDocument list
-    ## 04_Damage.tex          2      PlainTextDocument list
-    ## 05_Countermeasures.tex 2      PlainTextDocument list
-    ## 06_FastNeutrons.tex    2      PlainTextDocument list
-    ## 07_ColdNeutrons.tex    2      PlainTextDocument list
-    ## 08_HeavyIons.tex       2      PlainTextDocument list
-    ## 10_Appendix.tex        2      PlainTextDocument list
-    ## Thanks.tex             2      PlainTextDocument list
-
-Now cleanup the read text
-
-``` r
+#' 
+#' Now cleanup the read text
+#' 
+## ------------------------------------------------------------------------
 # #######################
 # ###### CONSTANTS ######
 # #######################
@@ -150,9 +94,10 @@ ngramTokenizer <- function(x, n, m) NGramTokenizer(x, Weka_control(min = n, max 
 bigramTokenizer   <- function(x) ngramTokenizer(x, 2, 2)
 trigramTokenizer  <- function(x) ngramTokenizer(x, 3, 3)
 quadgramTokenizer <- function(x) ngramTokenizer(x, 4, 4)
-```
 
-``` r
+#' 
+#' 
+## ------------------------------------------------------------------------
 # #######################
 # #### DATA CLEANING ####
 # #######################
@@ -185,11 +130,13 @@ docs <- tm_map(docs, toSpace, SINGLE_CHARACTER_PATTERN)
 
 # Strip white space
 docs <- tm_map(docs, stripWhitespace)
-```
 
-Time to find often used word combinations. They are called n-grams. We will look for 2-grams to 4-grams. The data gathered could be used to do sentance prediction while typing.
-
-``` r
+#' 
+#' Time to find often used word combinations.
+#' They are called n-grams. We will look for 2-grams to 4-grams.
+#' The data gathered could be used to do sentance prediction while typing.
+#' 
+## ------------------------------------------------------------------------
 # ###############################
 # #### N-GRAM MODEL CREATION ####
 # #### can be used to predict ###
@@ -220,11 +167,11 @@ write.table(docs_en[1:length(docs_en)]$content, PROCESSED_CORPUS_FNAME, row.name
 
 # Free up memory
 rm(docs_en); nohup <- gc(verbose = FALSE)
-```
 
-Now we will count the frequencies of words
-
-``` r
+#' 
+#' Woe we will count the frequencies of words
+#' 
+## ------------------------------------------------------------------------
 # ########################################
 # #### TERM FREQUENCY VECTOR CREATION ####
 # ########################################
@@ -235,66 +182,42 @@ docs_en  <- Corpus(DirSource(dir_en_processed), readerControl = list(reader = re
 # Create the Document Term Matrix (DTM)
 dtm <- DocumentTermMatrix(docs_en)
 dim(dtm)
-```
 
-    ## [1]    1 4293
-
-A big matrix, let's reduce it. 4293 unique words.
-
-``` r
+#' 
+#' A big matrix, let's reduce it. 4293 unique words.
+#' 
+## ------------------------------------------------------------------------
 # IMPORTANT: Remove the least frequent terms. There are many sparse terms 
 # (mostly with frequencies between 1 - 9) that are useless
 dtm <- DocumentTermMatrix(docs_en, list(dictionary=findFreqTerms(dtm, 10)))
 dim(dtm)
-```
 
-    ## [1]   1 516
-
-``` r
 # Free up memory by removing the Corpus. Not needed anymore
 rm(docs_en); nohup <- gc(verbose = FALSE)
-```
 
-Much better, only 516 most often used words left. In case you have read more than one document, the first number will be different from 1.
 
-``` r
+#' 
+#' Much better, only 516 most often used words left. In case you have read more than one document, the first number will be different from 1.
+#' 
+## ------------------------------------------------------------------------
 # IMPORTANT: Remove the least frequent terms. There are many sparse terms 
 # (mostly with frequencies between 1 - 9) that are useless
 dtm_withoutSparseTerms <- removeSparseTerms(dtm, 0.3)
 
 # inspect the matrix
 t(inspect(dtm_withoutSparseTerms)[1,])
-```
 
-    ## <<DocumentTermMatrix (documents: 1, terms: 516)>>
-    ## Non-/sparse entries: 516/0
-    ## Sparsity           : 0%
-    ## Maximal term length: 26
-    ## Weighting          : term frequency (tf)
-    ## Sample             :
-    ##                       Terms
-    ## Docs                   can charge electrons energy pixel radiation sensor
-    ##   processed_corpus.txt 141    277       160    221   255       241    218
-    ##                       Terms
-    ## Docs                   sensors signal silicon
-    ##   processed_corpus.txt     177    158     122
-
-    ##      can charge electrons energy pixel radiation sensor sensors signal
-    ## [1,] 141    277       160    221   255       241    218     177    158
-    ##      silicon
-    ## [1,]     122
-
-``` r
 # Calculate the cumulative frequencies of words across documents [FREQUENCY VECTOR]
 freqr <- colSums(as.matrix(dtm_withoutSparseTerms))
 
 # Free up memory
 rm(dtm); rm(dtm_withoutSparseTerms); nohup <- gc(verbose = FALSE)
-```
 
-In the bottom row we allready see the most frequent words. The list is not ordered yet.
 
-``` r
+#' 
+#' In the bottom row we allready see the most frequent words. The list is not ordered yet.
+#' 
+## ------------------------------------------------------------------------
 # Create sort vector in descending order of frequency
 ordr <- order(freqr, decreasing=TRUE)
 
@@ -311,24 +234,33 @@ write.table(ordr,  TERM_FREQ_ORDERED_VECTOR_FNAME, row.names = FALSE, col.names 
 
 # Free up memory
 rm(freqr_df); nohup <- gc(verbose = FALSE)
-```
 
-Now we have written the word usages into files. After saving our results on the harddrive, lets do some plotting!
+#' 
+#' Now we have written the word usages into files. After saving our results on the harddrive, lets do some plotting!
+#' 
+## ----fig.width=12, fig.height=4, echo=FALSE------------------------------
+# Plot a histogram for the most frequent terms 
+wf <- data.frame(term=names(freqr),occurrences=freqr)
+wf <- subset(wf, freqr>90)
+wf$term <- factor(wf$term, levels = wf$term[order(-wf$occurrences)])
+p <- ggplot(wf, aes(term, occurrences))
+p <- p + geom_bar(stat="identity")
+p <- p + theme(axis.text.x=element_text(angle=45, hjust=1, size=15))
+p
 
-![](testnotebook_files/figure-markdown_github/unnamed-chunk-9-1.png)
-
-And here the famous word cloud.
-
-A wordcloud can be used to distinguish one kind of text type from another very quickly. Modern spam filters can for example predict if a mail is a spam mail by analyzing the most frequently used words in a mail and comparing its wordcloud to the wordcloud of not-spam mails.
-
-Use the word-frequencies and the gathered information to create an individual fingerprint for your documents. Categorize them quickly with your trained machine learning model. 
-
-``` r
+#' 
+#' And here the famous word cloud.
+#' 
+#' A wordcloud can be used to distinguish one kind of text type from another very quickly. Modern spam filters can for example predict if a mail is a spam mail by analyzing the most frequently used words in a mail and comparing its wordcloud to the wordcloud of not-spam mails.
+#' 
+#' Use the word-frequencies and the gathered information to create an individual fingerprint for your documents. Categorize them quickly with your trained machine learning model. 
+#' 
+## ------------------------------------------------------------------------
 wf <- data.frame(term=names(freqr),occurrences=freqr)
 pal <- brewer.pal(8, "Dark2")
 wordcloud(words = wf$term, freq = wf$occurrences, min.freq = 70, colors = pal,random.order = FALSE, scale=c(3,0.5))
-```
 
-![](testnotebook_files/figure-markdown_github/unnamed-chunk-10-1.png)
-
-I hope you had fun :)
+#' 
+#' 
+#' I hope you had fun :)
+#' 
